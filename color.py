@@ -1,15 +1,18 @@
-#  Lukas Elsrode - color.py (11/04/2020)
+"""color.py
 
+Applies a variety of color classification and identification methods to our data
 
-''' Aplies variety of color classification methods to our data
-'''
-
-import scale_data
+    SCALE PROJECT -- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
+                  -- ALL RIGHTS RESERVED 
+        
+        Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
+        (09/01/2021)
+"""
 import numpy as np
 import webcolors
 import math
 
-# base-input
+# The Default Colors that we expect in our DataSet
 default_colors = [
     'white',
     'black',
@@ -22,10 +25,18 @@ default_colors = [
     'blue',
     'green',
     'grey',
+    'lime'
+]
 
-    ]
 
 def closest_colour(requested_colour):
+    """Returns Closest Color in String Format given RGB input
+        
+        Inputs:
+            (tupl) - 'requested_colour': The RGB values of the color i.e (0,0,0)
+        Outputs:
+            (string) - The Closest definable color as per the CSS3 color library 
+    """
     min_colours = {}
     for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
         r_c, g_c, b_c = webcolors.hex_to_rgb(key)
@@ -35,34 +46,49 @@ def closest_colour(requested_colour):
         min_colours[(rd + gd + bd)] = name
     return min_colours[min(min_colours.keys())]
 
-def get_colour_name(requested_colour):
+def return_closest_RGBcolor(requested_colour):
+    """Get the Closest Definable Color Name in CSS3
+
+        Inputs: 
+            (tuple) - 'requested_colour' : The RGB value of the color i.e (0,0,0)
+        Outputs:
+            (string) - 'actual_name' or 'closest_name'
+    """
+    # Try and see if there is a direct hit in the range for a specific color name
     try:
         closest_name = actual_name = webcolors.rgb_to_name(requested_colour)
     except ValueError:
+        # Get the closest definable color in CSS3
         closest_name = closest_colour(requested_colour)
         actual_name = None
-    return actual_name, closest_name
-
-def return_closest_RGBcolor(requested_color):
-    actual_name, closest_name = get_colour_name(requested_color)
+    # Return Best of two options
     if actual_name:
         return actual_name
-    else:
-        return closest_name
+    return closest_name
+
 
 def closest_bincolor(input_color, def_colors=default_colors):
+    """Returns Closest Color to Input color given a color list 
 
+        Inputs:
+            ()
+            ()
+        Outputs:
+            ()
+    """
     r, g, b = webcolors.name_to_rgb(input_color)[0:3]
     color_diffs = []
 
     for color in def_colors:
         cr, cg, cb = webcolors.name_to_rgb(color)[0:3]
-        color_diff = math.sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+        color_diff = math.sqrt(
+            abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
         color_diffs.append((color_diff, color))
 
     return min(color_diffs)[1]
 
-def swaptoRGB(df_samples,color_bins=default_colors):
+
+def swaptoRGB(df_samples, color_bins=default_colors):
     '''Swaps the RGB input to
     '''
     res = []
@@ -90,7 +116,8 @@ def swaptoRGB(df_samples,color_bins=default_colors):
     if color_bins != None:
         for rgb_color in res:
             if rgb_color != None:
-                classified_color = closest_bincolor(rgb_color,def_colors=color_bins)
+                classified_color = closest_bincolor(
+                    rgb_color, def_colors=color_bins)
                 rv.append(classified_color)
             else:
                 rv.append(None)
@@ -100,13 +127,15 @@ def swaptoRGB(df_samples,color_bins=default_colors):
 
     return df_samples
 
+
 def drop_misclassified_colors(df_samples, df_data):
     ''' If the color is misclasified given our algo we eliminate rows associated with it
     '''
     # initialize rv to return correctly classified indexes
     rv = []
     # re-index one another
-    samples, df = reindex_hierarchy(df_samples, with_color=True), reindex_hierarchy(df_data, with_color=True)
+    samples, df = reindex_hierarchy(
+        df_samples, with_color=True), reindex_hierarchy(df_data, with_color=True)
     # get the rbg color
     samples = swaptoRGB(samples)
     # break it down by irr and non-irr colors
@@ -125,6 +154,7 @@ def drop_misclassified_colors(df_samples, df_data):
 
     return samples, df
 
+
 def split_by_irridesence(df_samples):
 
     # break it down by irr and non-irr colors
@@ -132,6 +162,7 @@ def split_by_irridesence(df_samples):
     no_irr = df_samples.loc[df_samples['irr_color'] == '']
 
     return irr, no_irr
+
 
 def reindex_hierarchy(df, with_color=False):
 
@@ -155,7 +186,8 @@ def reindex_hierarchy(df, with_color=False):
 
     return df
 
-def fill_dictionary(df,k,v):
+
+def fill_dictionary(df, k, v):
 
     d = {}
 
@@ -167,28 +199,30 @@ def fill_dictionary(df,k,v):
 
     return d
 
-def fill_cmap(df,i='index',on_index=None):
-    d = fill_dictionary(df,i,'scale_color')
-    c_map ={}
-    
+
+def fill_cmap(df, i='index', on_index=None):
+    d = fill_dictionary(df, i, 'scale_color')
+    c_map = {}
+
     # Then map to specific species color
     if on_index != None:
-        for k,v in d.items():
+        for k, v in d.items():
             rgb = RGB_type_to_str(v)
             c_map[k] = rgb
 
     # Then map the scale_color : rgb(scale_color as labeled)
     else:
-        for _,v in d.items():
+        for _, v in d.items():
             rgb = RGB_type_to_str(v)
             c_map[v] = rgb
-    
+
     return c_map
+
 
 def RGB_type_to_str(color_name):
     if color_name == 'cream':
         color_name = 'ghostwhite'
-    
+
     if color_name == 'glass':
         color_name = 'cyan'
 
@@ -203,29 +237,30 @@ def RGB_type_to_str(color_name):
     new_v = 'rgb(' + r + ',' + g + ',' + b + ')'
     return new_v
 
+
 def make_R_G_B_cols(df):
-    
 
     # use the color map
-    c_map = fill_cmap(df,on_index=None) 
+    c_map = fill_cmap(df, on_index=None)
 
-    # Init 3 new_columns 
+    # Init 3 new_columns
     n = len(df)
-    p = ['R','G','B']
+    p = ['R', 'G', 'B']
     for i in p:
         df[i] = np.zeros([n, 1], dtype=int)
-    
-    for i,j in df.iterrows():
+
+    for i, j in df.iterrows():
         nums = c_map[j['scale_color']].split(',')
         nums = [i for i in nums]
-        r,g,b = nums
-        r,g,b = int(r[4:]),int(g),int(b[:-1])
+        r, g, b = nums
+        r, g, b = int(r[4:]), int(g), int(b[:-1])
 
-        df.at[i,'R'] = r
-        df.at[i,'G'] = g
-        df.at[i,'B'] = b        
+        df.at[i, 'R'] = r
+        df.at[i, 'G'] = g
+        df.at[i, 'B'] = b
 
     return df
+
 
 def use_RBG(df_samples, df_data, colors=default_colors):
     ''' Replaces the scale color input with the RGB value
@@ -236,7 +271,7 @@ def use_RBG(df_samples, df_data, colors=default_colors):
     # get the rbg color
     samples = swaptoRGB(samples, color_bins=colors)
     # create a dictionary to get the k:v pairs together
-    d = fill_dictionary(samples,k='index',v='classified_color')
+    d = fill_dictionary(samples, k='index', v='classified_color')
 
     for k, v in d.items():
         df.loc[df_data['index'] == k, 'scale_color'] = v
