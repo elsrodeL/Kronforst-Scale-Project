@@ -8,6 +8,7 @@ Applies a variety of color classification and identification methods to our data
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
         (09/01/2021)
 """
+
 import numpy as np
 import webcolors
 import math
@@ -31,7 +32,7 @@ default_colors = [
 
 def closest_colour(requested_colour):
     """Returns Closest Color in String Format given RGB input
-        
+
         Inputs:
             (tupl) - 'requested_colour': The RGB values of the color i.e (0,0,0)
         Outputs:
@@ -45,6 +46,7 @@ def closest_colour(requested_colour):
         bd = (b_c - requested_colour[2]) ** 2
         min_colours[(rd + gd + bd)] = name
     return min_colours[min(min_colours.keys())]
+
 
 def return_closest_RGBcolor(requested_colour):
     """Get the Closest Definable Color Name in CSS3
@@ -71,10 +73,10 @@ def closest_bincolor(input_color, def_colors=default_colors):
     """Returns Closest Color to Input color given a color list 
 
         Inputs:
-            ()
-            ()
+            (String) - 'input_color' : The name of the color 
+            (List of Strings) - 'def_colors' : A list of color names 
         Outputs:
-            ()
+            (String) : The color in 'def_colors' closest to 'input_color' in RGB space
     """
     r, g, b = webcolors.name_to_rgb(input_color)[0:3]
     color_diffs = []
@@ -89,8 +91,16 @@ def closest_bincolor(input_color, def_colors=default_colors):
 
 
 def swaptoRGB(df_samples, color_bins=default_colors):
-    '''Swaps the RGB input to
-    '''
+    """ Changes the Labled Color in df_samples from the Publication to the closest RGB color 
+            if color_bins is 'None' otherwises chooses closest color to labeled color from 'color_bins'
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+            (List of Strings) - 'color_bins' : The baseline name of colors to re-organize our labeled data around i.e ['white','black'] or 'None' for no binning 
+
+        Outputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The modified samples data for our study
+    """
     res = []
     rbg = df_samples['rbg_color'].values
 
@@ -110,9 +120,9 @@ def swaptoRGB(df_samples, color_bins=default_colors):
 
     # now we turn the closest values into the nearest value in our res list
     # default color inputs
-
     rv = []
 
+    # If default colors are provided match within that list, else just take the nearest color
     if color_bins != None:
         for rgb_color in res:
             if rgb_color != None:
@@ -122,15 +132,39 @@ def swaptoRGB(df_samples, color_bins=default_colors):
             else:
                 rv.append(None)
         df_samples['classified_color'] = rv
+
     else:
         df_samples['classified_color'] = res
 
     return df_samples
 
 
+def split_by_irridesence(df_samples):
+    """ Splits up Samples into two separate DataFrames of iridescent and non-iridescent scales
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+        Ouputs:
+            (Tuple of 'Pandas.DataFrame' Object Classes) - tuple[0] : iridescent scales , tuple[1] : non-iridescent scales
+    """
+    # break it down by irr and non-irr colors
+    irr = df_samples.loc[df_samples['irr_color'] != '']
+    no_irr = df_samples.loc[df_samples['irr_color'] == '']
+    return irr, no_irr
+
+
 def drop_misclassified_colors(df_samples, df_data):
-    ''' If the color is misclasified given our algo we eliminate rows associated with it
-    '''
+    """Removes 'misclassified colors' from samples data and morphometric data
+
+            A 'misclassified' color is a color which was labeled in the publication as 'red'/'X' but is closer 
+            to another color in the default_color bin such as 'yellow'/'Y' given its RGB reference value. 
+
+            Inputs:
+                ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+                ('Pandas.DataFrame' Object Class) - 'df_data' : The Morphometric Data for our study of wilde type species 
+            Outputs:
+                (Tuple of Pandas.DataFrame' Object Classes) - 'samples', 'df' : updated samples and wt morphometric data 
+    """
     # initialize rv to return correctly classified indexes
     rv = []
     # re-index one another
@@ -146,41 +180,38 @@ def drop_misclassified_colors(df_samples, df_data):
     # pigmented color is determined color
     no_irr_correct = no_irr.loc[no_irr['labeled_color']
                                 == no_irr['classified_color']]['index'].tolist()
+    # Append using += using python list feature
     rv += irr_correct
     rv += no_irr_correct
-
+    # Apply a filter to original DataFrames to only allow those that were correctly classified
     s_filter, d_filter = samples['index'].isin(rv), df['index'].isin(rv)
     samples, df = samples[s_filter], df[d_filter]
-
     return samples, df
 
 
-def split_by_irridesence(df_samples):
-
-    # break it down by irr and non-irr colors
-    irr = df_samples.loc[df_samples['irr_color'] != '']
-    no_irr = df_samples.loc[df_samples['irr_color'] == '']
-
-    return irr, no_irr
-
-
-def reindex_hierarchy(df, with_color=False):
+# TO-DO : Allow re-indexing for mutants
+def reindex_hierarchy(df, with_color=False, mutants=False):
+    """ Creates a New Column in the DataFrame Provided
+    """
 
     rv = []
     H = df.to_numpy()
     r, _ = H.shape
 
     for i in range(r):
+
         hierarchy = H[i][4]
         genotype = H[i][5]
 
         new_index = hierarchy + ' ' + genotype
 
         if with_color == True:
+            # Check for iridescent color as that tends to be the dominant visible color
             if H[i][7] != '':
                 new_index = new_index + ' ' + H[i][7]
             else:
                 new_index = new_index + ' ' + H[i][6]
+
         rv.append(new_index)
     df['index'] = rv
 
@@ -188,22 +219,17 @@ def reindex_hierarchy(df, with_color=False):
 
 
 def fill_dictionary(df, k, v):
-
     d = {}
-
     new_colors = df[v].tolist()
     indexes = df[k].tolist()
-
     for i, j in enumerate(new_colors):
         d[indexes[i]] = j
-
     return d
 
 
 def fill_cmap(df, i='index', on_index=None):
-    d = fill_dictionary(df, i, 'scale_color')
-    c_map = {}
 
+    d, c_map = fill_dictionary(df, i, 'scale_color'), {}
     # Then map to specific species color
     if on_index != None:
         for k, v in d.items():
@@ -265,9 +291,9 @@ def make_R_G_B_cols(df):
 def use_RBG(df_samples, df_data, colors=default_colors):
     ''' Replaces the scale color input with the RGB value
     '''
-
     # re-index one another
-    samples, df = reindex_hierarchy(df_samples, with_color=True), reindex_hierarchy(df_data, with_color=True)
+    samples, df = reindex_hierarchy(
+        df_samples, with_color=True), reindex_hierarchy(df_data, with_color=True)
     # get the rbg color
     samples = swaptoRGB(samples, color_bins=colors)
     # create a dictionary to get the k:v pairs together

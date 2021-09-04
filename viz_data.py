@@ -9,7 +9,6 @@ Functions to Visualize the Data
         (09/01/2021)
         
 """
-import scale_data as data
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -61,6 +60,7 @@ def make_title(df):
 
     return 'Raw Data'
 
+
 def feature_distribution(df, feature='scale_color', segby='f'):
     """Shows Distributions of Measurements at the 'segby' level grouped by 'feature'
 
@@ -70,7 +70,7 @@ def feature_distribution(df, feature='scale_color', segby='f'):
             (string) - 'segby': By What Class attribute in the Column of the dataset should the data be split up by
 
         Outputs:
-            (None) - Plots Box Plots of Features
+            (None) - Plots Violin Plots of Features
     """
     dfs = segment_df_by_field(df, segby)
     measurements = DEF_FEATURES
@@ -82,20 +82,23 @@ def feature_distribution(df, feature='scale_color', segby='f'):
             plt.show()
     return
 
+# TO TEST
+
+
 def run_viz_by_field(df, foo, c_map, field, segby='f'):
-    """Recursively runs through vizulization function 'foo' to our data segmented 'df' 
-    by a group 'f', running each vizulization obeserving variable 'field' and applies a 
+    """Recursively runs through visualization function 'foo' to our data segmented 'df' 
+    by a group 'f', running each visualization observing variable 'field' and applies a 
     color mapping 'c_map' to those visualization.
 
         Inputs:
             ('Pandas.DataFrame' Object Class) - 'df' : DataFrame to plot our Morphometric measurements
-            ('Function' Python Object Class) - 'foo' : funtion in viz_data.py that takes a 'color mapping' and 'field' as inputs
+            ('Function' Python Object Class) - 'foo' : function in viz_data.py that takes a 'color mapping' and 'field' as inputs
             (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
             (string) - 'field': What Variable to classify the plot against i.e 'scale_color'
             (string) - what to segment the data by i.e 'f'- by family 
-    
+
         Outputs:
-            (None) - Plots Viszilizations 
+            (None) - Plots Visualizations 
 
     """
 
@@ -109,10 +112,21 @@ def run_viz_by_field(df, foo, c_map, field, segby='f'):
             foo(d, c_map=c_map, field=field)
     return
 
+# TO TEST
+
 
 def show_originaldim(df, c_map, features=DEF_FEATURES, field='scale_color'):
-    '''Shows original feature distrobution of our dataset
-    '''
+    """Shows original feature distribution of our dataset
+    Plots all the diffrent included features and maps the color using a color map.
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df' : DataFrame to plot our Morphometric measurements
+            (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
+            (List of Strings) - 'features': the column names for the morphometric measurements to be examined
+            (String) - 'field': By what column is the data divided by 
+        Outputs:
+            (None)
+    """
 
     fig = px.scatter_matrix(
         df,
@@ -124,7 +138,7 @@ def show_originaldim(df, c_map, features=DEF_FEATURES, field='scale_color'):
 
     fig.update_traces(diagonal_visible=False)
     fig.show()
-
+    plt.savefig('test.png')
     return
 
 
