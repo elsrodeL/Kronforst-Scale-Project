@@ -7,10 +7,14 @@ GoogleSheets Database is pre-processed for analysis
         
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
         (09/01/2021)
+
+THIS FILE IS COMPLETE AS OF (09/23/2020)
 """
+
+# We use Pandas.DataFrame Object Classes to hold our data
 import pandas as pd
 
-# The Numeric Ranges of Our Measurments in the GoogleSheets Spreadsheet
+# The Numeric Ranges of Our Measurements in the GoogleSheets Spreadsheet
 DEFAULT_WT_RANGE = (8, 15)
 DEFAULT_MUTANT_RANGE = (14, 21)
 DEFAULT_SAMPLES_RANGE = (12, 19)
@@ -22,6 +26,7 @@ sheet_input_range = {
     'samples_info': DEFAULT_SAMPLES_RANGE}
 
 
+# We write a function to get and write into a Pandas.DataFrame from a URL
 def get_df(sheet_name='wt_table'):
     """Returns DataFrame of Relevant DataSheet Associated with our DataBase 
         Inputs:
@@ -47,9 +52,9 @@ def get_df(sheet_name='wt_table'):
         return df_raw
 
     else:
-        # get the numeric range of measurment entries
+        # get the numeric range of measurement entries
         q1, q2 = sheet_input_range[sheet_name]
-        # define the collumns which are numbers not strings
+        # define the columns which are numbers not strings
         quant_vars = [i for i in df_raw.columns[q1:q2]]
         qual_vars = [i for i in df_raw.columns if i not in quant_vars]
         # Force strings into floats
@@ -65,6 +70,7 @@ def get_df(sheet_name='wt_table'):
         return df_raw
 
 
+# Something to split up the Phylogenetic portion of the data
 def segment_df_by_field(df, group_by='f'):
     """ Segments Pandas.DataFrame of Data by Group of total entries within the set of Group_By
         i.e 'scale_color'
@@ -79,6 +85,7 @@ def segment_df_by_field(df, group_by='f'):
                     't': by tribe
                     'ge': by genus
                     'c': by scale color
+
             Outputs:
                 (list of 'Pandas.DataFrame' Object Classes) - l : A list of datasets 
                     segmented by all values in the group_by set.
@@ -107,3 +114,8 @@ def segment_df_by_field(df, group_by='f'):
         l.append(df_member)
 
     return l
+
+
+# THE THREE MAIN DATAFRAMES COMPRISING OUR STUDY
+WT_DATA, SAMPLES_DATA, MUTANT_DATA = get_df(), get_df(
+    'samples_info'), get_df('mutant_table')
