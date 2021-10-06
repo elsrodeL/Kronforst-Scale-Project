@@ -1,4 +1,4 @@
-"""color.py
+""" color.py
 
 Applies a variety of color classification and identification methods to our data
 
@@ -8,10 +8,11 @@ Applies a variety of color classification and identification methods to our data
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
         (09/01/2021)
 
-10/15 Functions Complete - (09/26/2021)
+File Completed - (10/06/2021)
+
 """
 
-import numpy as np
+
 import webcolors
 import math
 
@@ -34,7 +35,6 @@ DEFAULT_COLORS = [
 ]
 
 
-# DONE
 def closest_colour(requested_colour):
     """Returns Closest Color in String Format given RGB input
 
@@ -53,7 +53,6 @@ def closest_colour(requested_colour):
     return min_colours[min(min_colours.keys())]
 
 
-# DONE
 def return_closest_RGBcolor(requested_colour):
     """Get the Closest Definable Color Name in CSS3
 
@@ -75,7 +74,6 @@ def return_closest_RGBcolor(requested_colour):
     return closest_name
 
 
-# DONE
 def closest_bincolor(input_color, def_colors=DEFAULT_COLORS):
     """Returns Closest Color to Input color given a color list
 
@@ -97,7 +95,6 @@ def closest_bincolor(input_color, def_colors=DEFAULT_COLORS):
     return min(color_diffs)[1]
 
 
-# DONE
 def reindex_hierarchy(df, with_color=False, mutants=False):
     """ Alters a DataFrame creating a New Column by which to re-index the table entries by 
         Used for to create a color mapping between a key:value for our data visualizations 
@@ -140,7 +137,6 @@ def reindex_hierarchy(df, with_color=False, mutants=False):
     return df
 
 
-# DONE
 def fill_dictionary(df, k, v):
     """ Maps Keys to Values by row entry in DataFrame returning a dictionary of mappings
         Given a DataFrame 'df' containing columns 'k','v' map entries.
@@ -175,7 +171,6 @@ def fill_dictionary(df, k, v):
     return d_2
 
 
-# DONE
 def color_name_to_custom_RGB_format(color_name):
     """ Converts the string color name into the RGB code format we use in our DataTable in GoogleSheets
         (i.e) 'white' -> 'rgb(0,0,0)' 
@@ -202,7 +197,6 @@ def color_name_to_custom_RGB_format(color_name):
     return new_v
 
 
-# DONE
 def fill_cmap(df, color_description='scale_color', on_index=True, keys='index'):
     """ Fills the Color Mapping for our Data Visualizations 
     makes a dictionary of 
@@ -244,7 +238,6 @@ def fill_cmap(df, color_description='scale_color', on_index=True, keys='index'):
     return c_map
 
 
-# DONE
 def split_by_irridesence(df_samples):
     """ Splits up Samples into two separate DataFrames of iridescent and non-iridescent scales
 
@@ -259,7 +252,6 @@ def split_by_irridesence(df_samples):
     return irr, no_irr
 
 
-# DONE
 def add_color_classification_from_rbg_code(df_samples, color_bins=DEFAULT_COLORS):
     """ Changes the Labled Color in df_samples from the Publication to the closest RGB color
             if color_bins is 'None' otherwises chooses closest color to labeled color from 'color_bins'
@@ -309,7 +301,6 @@ def add_color_classification_from_rbg_code(df_samples, color_bins=DEFAULT_COLORS
     return df_samples
 
 
-# DONE
 def drop_misclassified_colors(df_samples, df_data, color_bins=DEFAULT_COLORS):
     """ Removes 'misclassified colors' from samples data and morphometric data
 
@@ -347,20 +338,20 @@ def drop_misclassified_colors(df_samples, df_data, color_bins=DEFAULT_COLORS):
     return samples, df
 
 
-# NOT-DONE : DOC
 def correct_color_description_using_rbg_codes(df_samples, df_data, mutants=False, colors=DEFAULT_COLORS):
     """ Replaces the 'scale color' description with what the RBG value is closest to. 
         Replaces the scale color description of the 'df_data' table with a more accurate classification
         according to the CSS3 library. Input NoneType into colors to classify to closest possible defianable color in the CSS3 library. 
 
         Inputs:
-            ()
-            ()
-            ()
-            ()
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+            ('Pandas.DataFrame' Object Class) - 'df_data' : The Morphometric Data for our study of wilde type or mutant species
+            (Boolean) - 'mutants' : Is the 'df_data' variable mutant data
+            (List of Strings) - 'colors': A list of default colors to match to the labled color 
+                                          if None then the color value will be changed to the closest identifiable color in CSS3
 
         Outputs:
-            ()
+            (Tuple of 'Pandas.DataFrame' Object Classes) - df_samples, df_data 
 
     """
     # Map the Custom Indexes -> string color name using a dictionary
@@ -384,68 +375,62 @@ def correct_color_description_using_rbg_codes(df_samples, df_data, mutants=False
     return samples, df
 
 
-# NOT DONE : DOC + TESTING
-def make_R_G_B_cols(df):
-    """
-    """
-    # use the color map
-    c_map = fill_cmap(df, on_index=None)
-
-    # Init 3 new_columns
-    n = len(df)
-    p = ['R', 'G', 'B']
-    for i in p:
-        df[i] = np.zeros([n, 1], dtype=int)
-
-    for i, j in df.iterrows():
-        nums = c_map[j['scale_color']].split(',')
-        nums = [i for i in nums]
-        r, g, b = nums
-        r, g, b = int(r[4:]), int(g), int(b[:-1])
-
-        df.at[i, 'R'] = r
-        df.at[i, 'G'] = g
-        df.at[i, 'B'] = b
-
-    return df
-
-# NOT DONE : DOC + TESTING
-
-
 def gen_rgb_data(df_samples, df_data, mutants=False):
-    """
+    """ Generates Data and changes 'scale_color' description to the closest identifiable color in CSS3 given rgb code
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+            ('Pandas.DataFrame' Object Class) - 'df_data' : The Morphometric Data for our study of wilde type or mutant species
+            (Boolean) - 'mutants' : Is the 'df_data' mutant data
+        Outputs:
+            (Tuple of 'Pandas.DataFrame' Object Classes) : 'info', 'data'
+
     """
     if not mutants:
         # Switch the 'scale_color' field in both datasets to the RGB name
         info, data = correct_color_description_using_rbg_codes(
             df_samples, df_data, colors=None)
-        # Add the 'R','G','B' columns
-        data = make_R_G_B_cols(data)
-        return info, data
     else:
-        return
+        # Switch the 'scale_color' field in both datasets to the RGB name
+        info, data = correct_color_description_using_rbg_codes(
+            df_samples, df_data, mutants=True, colors=None)
 
-# NOT DONE : DOC + TESTING
+    return info, data
 
 
 def gen_validated_by_data(df_samples, df_data):
-    """
+    """ Generates Data who's 'labeled_color' field is the same as the color identified by our algorithm
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+            ('Pandas.DataFrame' Object Class) - 'df_data' : The Morphometric Data for our study of wilde type species
+
+        Outputs:
+            (Tuple of 'Pandas.DataFrame' Object Classes) : 'info', 'data'
     """
     info, data = drop_misclassified_colors(df_samples, df_data)
-    data = make_R_G_B_cols(data)
     return info, data
 
-# NOT DONE : DOC + TESTING
 
+def gen_custom_closest(df_samples, df_data, colors=DEFAULT_COLORS, mutants=False):
+    """ Generates Data and changes 'scale_color' field to the closest color in the 'colors' list
 
-def gen_custom_closest(df_samples, df_data, colors, mutants=False):
-    """
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df_samples' : The Sample Data for our study
+            ('Pandas.DataFrame' Object Class) - 'df_data' : The Morphometric Data for our study of wilde type or mutant species
+            (List) - 'colors' : The list of colors to match to i.e ['black','white']
+            (Boolean)- 'mutants': Is the df_data mutant data ? 
+        Outputs:
+            (Tuple of 'Pandas.DataFrame' Object Classes) : 'info', 'data'
+
     """
     if not mutants:
+        # Switch the 'scale_color' field in both datasets to the RGB name
         info, data = correct_color_description_using_rbg_codes(
             df_samples, df_data, colors=colors)
-        # Add the 'R','G','B' columns
-        data = make_R_G_B_cols(data)
-        return info, data
     else:
-        return
+        # Switch the 'scale_color' field in both datasets to the RGB name
+        info, data = correct_color_description_using_rbg_codes(
+            df_samples, df_data, mutants=True, colors=colors)
+
+    return info, data
