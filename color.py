@@ -42,6 +42,12 @@ def closest_colour(requested_colour):
             (tupl) - 'requested_colour': The RGB values of the color i.e (0,0,0)
         Outputs:
             (string) - The Closest definable color as per the CSS3 color library
+
+        DISCLAIMER: THIS IS NOT MY CODE 
+        Thank you to SBRG who uses and MIT liscense and to the open-source comunity
+        Source: https://www.programcreek.com/python/example/97156/webcolors.hex_to_rgb
+
+
     """
     min_colours = {}
     for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
@@ -60,6 +66,10 @@ def return_closest_RGBcolor(requested_colour):
             (tuple) - 'requested_colour' : The RGB value of the color i.e (0,0,0)
         Outputs:
             (string) - 'actual_name' or 'closest_name'
+
+    DISCLAIMER: THIS IS MODIFIED CODE FROM 
+    https://stackoverflow.com/questions/9694165/convert-rgb-color-to-english-color-name-like-green-with-python
+
     """
     # Try and see if there is a direct hit in the range for a specific color name
     try:
