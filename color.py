@@ -8,7 +8,7 @@ Applies a variety of color classification and identification methods to our data
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
         (09/01/2021)
 
-File Completed - (10/06/2021)
+File uncompleted...- (10/14/2021)
 
 """
 
@@ -444,3 +444,8 @@ def gen_custom_closest(df_samples, df_data, colors=DEFAULT_COLORS, mutants=False
             df_samples, df_data, mutants=True, colors=colors)
 
     return info, data
+
+
+# TO-DO; Need to write this up.
+def gen_mutants(df_samples, df_data, colors=DEFAULT_COLORS):
+    return None
