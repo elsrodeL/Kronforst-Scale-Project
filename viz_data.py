@@ -223,6 +223,7 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
             (None)
     """
     df_n, X = resize_data(df, features, field)
+    print(df_n, X)
     if type(df_n) != int:
         pca = PCA(n_components=2)
         components = pca.fit_transform(X)
@@ -251,6 +252,9 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
     return
 
 
+
+
+# NEED TO CATCH WTF IS WRONG HERE
 def resize_data(df, features, field):
     """ Given DataSet with a field to be determined from Features drop any rows which have missing feature inputs
 
@@ -306,8 +310,8 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
     assert components in set(
         [2, 3]), 'Reductions above 3 dimensions and below 2 dimensions are not possible '
     # Change Up the conditions so our Data is still Meaningful
-    feature_sets = get_all_possible_combinations()
-    feature_sets = [x for x in feature_sets if len(x) >= min_num_features]
+    feature_sets = [x for x in get_all_possible_combinations()
+                    if len(x) >= min_num_features]
     # Get a way to store ~ (feature_list,pca_explained_vairance_ratio)
     rv = [None]*len(feature_sets)
     # Fill rv[i] with values of explained variance score of feature_sets[i]
@@ -343,4 +347,48 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
     print('\n')
     # Show How Explained Variance Grows with added axes
     mk_explained_variance_curve(df, best_features, field)
+
     return best_features
+
+
+def full_data_analysis(data, c_map, optimize_to_n_features=3):
+    """
+    """
+    # Phylo
+
+    # 3D PCA
+    PCA_3D(data, c_map)
+    # 2D PCA
+    Load_Features(data, c_map)
+    # Optimization
+    optimize_feature_set(data, c_map, min_num_features=optimize_to_n_features)
+    return
+
+
+def family_analysis(wt_data, c_map, choose_n_features=5):
+    """
+    """
+    # Phylo
+    # Violin Plot
+    feature_distribution(wt_data)
+    # Segment Data By Family and Apply Desired Functions
+    fams = segment_df_by_field(wt_data, 'f')
+    for fam in fams:
+        show_originaldim(fam, c_map)
+        Load_Features(fam, c_map)
+        top_features = optimize_feature_set(
+            wt_data, c_map, min_num_features=choose_n_features)
+        show_originaldim(wt_data, c_map, top_features)
+    return
+
+
+def mutant_analysis(mutant_data, c_map):
+    """
+    """
+    # Phylo
+    # Print Features
+    # Violin Plot
+    # Facet Grid
+    # 2D PCA
+    # Optimization
+    return
