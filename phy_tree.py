@@ -1,33 +1,56 @@
 """phy_tree.py
-Class to Visulize the Phylogenetic Relationships/Connections in the Data 
+
+Class to Visualize the Phylogenetic Relationships/Connections in the Data 
 
     SCALE PROJECT -- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
                   -- ALL RIGHTS RESERVED 
         
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
-        (09/01/2021)
+        (09/14/2021)
 
 """
 
 import networkx as nx
-import scale_data as data 
+import scale_data as data
 import matplotlib.pyplot as plt
 
 
 class Trunk:
+    """
+        Phylogenetic Family Data Composing the Main Stem of the Phylogenetic Tree. 
+        The Tree Class is a class which takes in the Trunk Class as a parameter from which 
+        it constructs the tree from a DataFrame Provided. 
+
+        attr :: self.graph - The networkx.Graph Object Representing the Phylogenetic Tree's Structure 
+        attr :: self.all_fams - The Main Butterfly and Moth Families comprising our data 
+        attr :: self.traversal_nodes - The nodes in the Graph objects which are not families, species nodes but seperation nodes between the 
+                                        families at the time of divergence. Essentially the nodes that represent a common ancestor not reflected in the data provided.
+    """
+
     def __init__(self):
-        self.graph = self.mk_tree_trunk()
+        """ Trunk Constructor    
+            ~ This is all HardCoded in to avoid any mistakes in the phylogenetic relationships between the diffrent families in the DataSet.
+        """
         self.all_fams = [
-            'lycaenidae', 'nymphalidae',
-            'zyganidae', 'saturniidae',
-            'papilionidae', 'hesperiidae',
-            'uraniidae', 'pieridae']
+            'lycaenidae',
+            'nymphalidae',
+            'zyganidae',
+            'saturniidae',
+            'papilionidae',
+            'hesperiidae',
+            'uraniidae',
+            'pieridae'
+        ]
+        self.graph = self.mk_tree_trunk()
         self.traversal_nodes = [i for i in list(
             self.graph.nodes) if i not in self.all_fams]
 
     def mk_tree_trunk(self):
+        """ Constructs Phylogentic Tree of our ButteryFly and Moths in terms of families.
+        """
+        # init a Graph Object
         G = nx.Graph()
-
+        # mk the root and the diff connectors
         G.add_node('r')
         G.add_node('t0')
         G.add_node('t1')
@@ -35,16 +58,10 @@ class Trunk:
         G.add_node('t3')
         G.add_node('t4')
         G.add_node('t5')
-
-        G.add_node('zyganidae')
-        G.add_node('lycaenidae')
-        G.add_node('nymphalidae')
-        G.add_node('saturniidae')
-        G.add_node('papilionidae')
-        G.add_node('hesperiidae')
-        G.add_node('pieridae')
-        G.add_node('uraniidae')
-
+        # Add The families in our data as nodes in a graph
+        for fam in self.all_fams:
+            G.add_node(fam)
+        # connect connectors to fam to mk Trunk
         G.add_edge('r', 'zyganidae')
         G.add_edge('r', 't0')
         G.add_edge('t0', 't1')
@@ -62,12 +79,18 @@ class Trunk:
         return G
 
 
+# Make A Global Stem so it doesn't change if we mess around with it
 global stem
 stem = Trunk()
 
 
 class Tree:
+    """
+    """
+
     def __init__(self, df, trunk=stem):
+        """
+        """
         # Constructor Data
         self.trunk = trunk.graph                # Manual Graph
         self.trunk_fams = trunk.all_fams        # Families in DB
@@ -79,21 +102,25 @@ class Tree:
         self.complete()
 
     def complete(self):
+        """
+        """
         self.fill_tree()
         self.simplify_once()
-        show_tree(self)
+        draw_tree(self)
         return
 
     def fill_tree(self):
+        """
+        """
         # init
         self.tree = self.trunk
         # Get the depth of the Hierarchy you want to Itterate over
-        hierarchy, count = list(self.df.columns[1:5]),0
+        hierarchy, count = list(self.df.columns[1:5]), 0
         while count < (len(hierarchy) - 1):
             # Get the corresponding Data to the Current lvl in the tree
             lvl = hierarchy[count]
             nodes = [i for i in set(self.df[lvl].values)]
-            # 
+            #
             for p_node in nodes:
                 node_df = self.df.loc[self.df[lvl] == p_node]
                 sub_lvl = hierarchy[count + 1]
@@ -156,7 +183,8 @@ class Tree:
         return self.tree
 
     def simplify_once(self):
-
+        """
+        """
         g = self.tree
 
         d_dict = g.degree
@@ -213,15 +241,22 @@ class Tree:
 
 
 def pos_nodes(Tree):
+    """
+    """
     # Vizual Layout
     return nx.kamada_kawai_layout(Tree.tree, dim=2)
 
 
 def set_node_atts(Tree, p, nodes, color='red', size=700):
-    nx.draw_networkx_nodes(Tree.tree, p, nodelist=nodes,node_color=color, node_size=size)
+    """
+    """
+    nx.draw_networkx_nodes(Tree.tree, p, nodelist=nodes,
+                           node_color=color, node_size=size)
 
 
 def draw_tree(Tree):
+    """
+    """
     # Draw the Kamada Kawaii
     nx.draw_kamada_kawai(self.tree, with_labels=1)
     plt.axis('off')
