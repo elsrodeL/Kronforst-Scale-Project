@@ -9,10 +9,17 @@ Class to Visualize the Phylogenetic Relationships/Connections in the Data
         (09/14/2021)
 
 """
+# %%
 
 import networkx as nx
 import scale_data as data
 import matplotlib.pyplot as plt
+
+# Have some way of vizually differenting diffrent parts of the tree
+DEFAULT_T_NODE_COLOR = 'black'
+DEFAULT_FAM_COLOR = 'red'
+DEFAULT_SPECIES_COLOR = 'green'
+DEFAULT_CONN_COLOR = 'blue'
 
 
 class Trunk:
@@ -84,12 +91,66 @@ global stem
 stem = Trunk()
 
 
+def draw_tree(Tree):
+    """ Draws Phylogenetic Tree
+
+        Inputs:
+            ('networkx.classes.graph.Graph' Object Class) - 'Tree' : The Graph Object Representing Phylogenetic Relationships
+        Outputs:
+            (None) - Plots Graph Object 
+    """
+    # Draw the Kamada Kawaii
+    nx.draw_kamada_kawai(Tree, with_labels=1)
+    plt.axis('off')
+    plt.show()
+    return
+
+
+def pos_nodes(Tree):
+    """ Returns Position of Nodes comprising the Phylogenetic Tree
+
+        Inputs:
+            ('networkx.classes.graph.Graph' Object Class) - 'Tree' : The Graph Object Representing Phylogenetic Relationships
+        Outputs:
+            (Dictionary) - Dictionary mapping node names to their planar co-ordinates i.e {'pieridae' : [0.1678,-0.801]}
+    """
+    return nx.kamada_kawai_layout(Tree, dim=2)
+
+
+def set_node_attributes(Tree, nodes, color='red', size=700):
+    """ Changes the 'nodes' in the 'Tree' Graph to have 'color' and have a diameter 'size'
+
+        Inputs:
+            ('networkx.classes.graph.Graph' Object Class) - 'Tree': The Graph object 
+            (List of Strings) - 'nodes': The nodes in the Graph whose attributes you want to set
+            (String) - 'color' : The Color of the nodes in the Graph
+            (Int) - 'size' : The Diameter of the nodes in the Graph
+        Outputs:
+            (None) - Alters the Graph Object
+    """
+    poses = pos_nodes(Tree)
+    nx.draw_networkx_nodes(Tree, poses, nodelist=nodes,
+                           node_color=color, node_size=size)
+
+
 class Tree:
     """
+        The Phylogenetic Tree Object representing the 'relatedness' of diffrent species in our study
+
+        attr :: 'self.trunk' : The 'Trunk' Object Class from which we fill out the rest of the tree given the input params
+        attr :: 'self.trunk_fams' : All The diffrent families in the Trunk Graph
+        attr :: 'self.t_nodes' : The name of the traversal nodes in the Trunk Graph
+        attr :: 'self.df' : A DataFrame from our study containing the species samples to fill out the rest of the Tree
+        attr :: 'self.tree' : The Graph Object of the Phylogenetic Tree of the Data 'self.df'
     """
 
     def __init__(self, df, trunk=stem):
         """
+            Tree Class Constructor: 
+                Creates a Graph representation of the Phylogenetic Data from our study
+
+            param :: 'df' - Pandas.DataFrame Type Object Class of our Scale Data 
+            param :: 'trunk' - The networkx.Graph object representing the family phylogony of our diffrent families 
         """
         # Constructor Data
         self.trunk = trunk.graph                # Manual Graph
@@ -102,15 +163,16 @@ class Tree:
         self.complete()
 
     def complete(self):
-        """
+        """ Fills Graph Object out given the input parameters into the class 
         """
         self.fill_tree()
         self.simplify_once()
-        draw_tree(self)
+        draw_tree(self.tree)
         return
 
     def fill_tree(self):
-        """
+        """ Fills The Tree Graph Structure outwardly from the Stem itterating over the 
+            DataFrame inputted as a parameter in the constructor 
         """
         # init
         self.tree = self.trunk
@@ -175,11 +237,9 @@ class Tree:
         # Remove Manually Constructed Family Nodes which don't appear in our data
         all_famis = [i for i in set(self.df.family.values) if i != '']
         to_remove = [i for i in self.trunk_fams if i not in all_famis]
-
         for node in to_remove:
             if node in list(self.tree.nodes):
                 self.tree.remove_node(node)
-
         return self.tree
 
     def simplify_once(self):
@@ -205,7 +265,7 @@ class Tree:
             # Pointer to list to itterate
             j = 0
             cnode = None
-            while cnode not in conns:
+            while cnode not in conns and j < len(search_list):
                 cnode = search_list[j]
                 j += 1
             else:
@@ -213,15 +273,17 @@ class Tree:
                     d[l] = cnode
 
         for c in conns:
-            # Deapth First Search  itterator
-            search_list = list(nx.dfs_preorder_nodes(g, c))
-            j = 0
-            x = search_list[j]
-            while x not in conns or c == x:
-                j += 1
-                x = search_list[j]
-            else:
-                d[c] = x
+            try:
+                # Deapth First Search  itterator
+                search_list = list(nx.dfs_preorder_nodes(g, c))
+                j, x = 0, 0
+                while x not in conns or c == x:
+                    x = search_list[j]
+                    j += 1
+                else:
+                    d[c] = x
+            except:
+                continue
 
         # They are by def. reducable having only 2 edges
         for r in reducables:
@@ -238,27 +300,3 @@ class Tree:
         self.tree = g
 
         return self.tree
-
-
-def pos_nodes(Tree):
-    """
-    """
-    # Vizual Layout
-    return nx.kamada_kawai_layout(Tree.tree, dim=2)
-
-
-def set_node_atts(Tree, p, nodes, color='red', size=700):
-    """
-    """
-    nx.draw_networkx_nodes(Tree.tree, p, nodelist=nodes,
-                           node_color=color, node_size=size)
-
-
-def draw_tree(Tree):
-    """
-    """
-    # Draw the Kamada Kawaii
-    nx.draw_kamada_kawai(self.tree, with_labels=1)
-    plt.axis('off')
-    plt.show()
-    return
