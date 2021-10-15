@@ -6,10 +6,12 @@ Functions to Visualize the Data
                   -- ALL RIGHTS RESERVED
 
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
-        (10/11/2021)
+        (10/15/2021)
 
 """
 import itertools
+import phy_tree
+import color
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -158,7 +160,7 @@ def PCA_3D(df, c_map, features=DEF_FEATURES, field='scale_color'):
         print_axis_components(pca, features)
         fig = px.scatter_3d(
             components, x=0, y=1, z=2, color=df_n[field],
-            title='3-Component PCA',
+            title='3-Component PCA : ' + make_title(df),
             labels={'0': 'PC1', '1': 'PC2', '2': 'PC3'},
             color_discrete_map=c_map
         )
@@ -223,14 +225,13 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
             (None)
     """
     df_n, X = resize_data(df, features, field)
-    print(df_n, X)
     if type(df_n) != int:
         pca = PCA(n_components=2)
         components = pca.fit_transform(X)
         print_axis_components(pca, features)
         loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
 
-        fig = px.scatter(components, x=0, y=1, title=make_title(df), labels={
+        fig = px.scatter(components, x=0, y=1, title='2-Component PCA : ' + make_title(df), labels={
                          '0': 'PC1', '1': 'PC2'}, color=df_n[field], color_discrete_map=c_map)
 
         for i, feature in enumerate(features):
@@ -252,9 +253,6 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
     return
 
 
-
-
-# NEED TO CATCH WTF IS WRONG HERE
 def resize_data(df, features, field):
     """ Given DataSet with a field to be determined from Features drop any rows which have missing feature inputs
 
@@ -274,7 +272,7 @@ def resize_data(df, features, field):
 
     # Stoping condition if no PCA can be made
     if n <= 0:
-        return 0
+        return 0, 0
     else:
         return df_n, X
 
@@ -330,7 +328,7 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
             entry = fset, 0.0
             rv[i] = entry
             continue
-
+    rv = [i for i in rv if i != None]
     # get the key in the (k,v) pair tuples filling rv with lambda
     best_entry = max(rv, key=lambda i: i[1])
     best_features, _ = best_entry
@@ -344,7 +342,7 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
         # Show a 3D model PCA
         PCA_3D(df, c_map, best_features, field)
 
-    print('\n')
+    print(best_features)
     # Show How Explained Variance Grows with added axes
     mk_explained_variance_curve(df, best_features, field)
 
@@ -355,7 +353,7 @@ def full_data_analysis(data, c_map, optimize_to_n_features=3):
     """
     """
     # Phylo
-
+    phy_tree.Tree(data)
     # 3D PCA
     PCA_3D(data, c_map)
     # 2D PCA
@@ -365,20 +363,35 @@ def full_data_analysis(data, c_map, optimize_to_n_features=3):
     return
 
 
-def family_analysis(wt_data, c_map, choose_n_features=5):
+def family_analysis(wt_data, c_map, num_features=3):
     """
     """
-    # Phylo
     # Violin Plot
     feature_distribution(wt_data)
     # Segment Data By Family and Apply Desired Functions
     fams = segment_df_by_field(wt_data, 'f')
     for fam in fams:
-        show_originaldim(fam, c_map)
+        phy_tree.Tree(fam)
         Load_Features(fam, c_map)
-        top_features = optimize_feature_set(
-            wt_data, c_map, min_num_features=choose_n_features)
-        show_originaldim(wt_data, c_map, top_features)
+        top_features = optimize_feature_set(fam, c_map, num_features)
+        show_originaldim(fam, c_map, top_features)
+        print('\n')
+    return
+
+
+def wt_analysis(data):
+    """
+    """
+    print('*** WT ANALYSIS ***')
+    cmap = color.fill_cmap(data, on_index=False)
+    print('\n')
+    print(f"Color Mapping Used : {cmap}")
+    print('\n')
+    print('*** RAW DATA ANALYSIS ***')
+    full_data_analysis(data, cmap)
+    print('\n')
+    print('*** FAMILY ANALYSIS ***')
+    family_analysis(data, cmap)
     return
 
 
