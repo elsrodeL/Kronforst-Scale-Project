@@ -3,7 +3,6 @@
     Runs Our Program.   
 
 """
-
 # The Source Code for this Project can be found in these libraries
 import sys
 import pyfiglet
@@ -13,7 +12,7 @@ from scale_data import WT_DATA, SAMPLES_DATA, MUTANT_DATA
 from copy import deepcopy
 
 
-def main(dataset='closest', analysis='family', colors=None):
+def main(dataset='closest', analysis='family', colors=None, N=3):
     """ ~ Main Function For our Program ~
 
         Inputs:
@@ -37,18 +36,17 @@ def main(dataset='closest', analysis='family', colors=None):
     # Case of family analysis
     if analysis == 'family' and dataset == 'rgb':
         samples, data = color.gen_rgb_data(SAMPLES_DATA, WT_DATA)
-
+        viz_data.wt_analysis(data, n_features=N)
     if analysis == 'family' and dataset == 'validated':
         samples, data = color.gen_validated_by_data(SAMPLES_DATA, WT_DATA)
-
+        viz_data.wt_analysis(data, n_features=N)
     if analysis == 'family' and dataset == 'closest':
         if type(colors) != list:
             samples, data = color.gen_custom_closest(SAMPLES_DATA, WT_DATA)
         else:
             samples, data = color.gen_custom_closest(
                 SAMPLES_DATA, WT_DATA, colors)
-
-        viz_data.wt_analysis(data)
+        viz_data.wt_analysis(data, n_features=N)
 
     # Case of Mutants
     else:
@@ -71,4 +69,5 @@ if __name__ == "__main__":
     # Intro Text to Our Program
     txt = pyfiglet.figlet_format('The Scale Project')
     print(txt)
-    main(colors=['white', 'black'])
+    main(dataset='validated')
+
