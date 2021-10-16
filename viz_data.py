@@ -6,11 +6,10 @@ Functions to Visualize the Data
                   -- ALL RIGHTS RESERVED
 
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
-        (10/15/2021)
+        (10/16/2021)
 
 """
 import itertools
-import phy_tree
 import color
 import numpy as np
 import seaborn as sns
@@ -26,10 +25,12 @@ DEF_FEATURES = [
     'lacuna_perimeter',
     'lacuna_circularity',
     'crossrib_thickness',
-    'ridge_to_ridge_distance',
-    'trabernaculae_length',
-    'ridge_elevation'
+    'ridge_to_ridge_distance'
 ]
+
+# TESTING CURIOUS -- looks like I might have to do a 2-D vs. 3-D option ?
+#  'trabernaculae_length',
+# 'ridge_elevation'
 
 
 def make_title(df):
@@ -84,6 +85,7 @@ def feature_distribution(df, feature='scale_color', segby='f'):
             t = m + ' ' + 'distribution ' + 'for' + ' ' + make_title(df_)
             g.set(title=t)
             plt.show()
+    print('\n')
     return
 
 
@@ -132,12 +134,13 @@ def show_originaldim(df, c_map, features=DEF_FEATURES, field='scale_color'):
         df,
         dimensions=features,
         color=field,
-        title=make_title(df),
+        title=make_title(df) + ' - Original Dimension',
         color_discrete_map=c_map
     )
 
     fig.update_traces(diagonal_visible=False)
     fig.show()
+    print('\n')
     return
 
 
@@ -154,10 +157,8 @@ def PCA_3D(df, c_map, features=DEF_FEATURES, field='scale_color'):
     """
     df_n, X = resize_data(df, features, field)
     if type(df_n) != int:
-
         pca = PCA(n_components=3)
         components = pca.fit_transform(X)
-        print_axis_components(pca, features)
         fig = px.scatter_3d(
             components, x=0, y=1, z=2, color=df_n[field],
             title='3-Component PCA : ' + make_title(df),
@@ -165,6 +166,8 @@ def PCA_3D(df, c_map, features=DEF_FEATURES, field='scale_color'):
             color_discrete_map=c_map
         )
         fig.show()
+        print_axis_components(pca, features)
+        print('\n')
         return
 
 
@@ -176,13 +179,15 @@ def print_axis_components(pca, features):
             (List of Strings) - 'features': The column names of the features making up the axes
         Outputs:
             (None)
-
     """
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
     for i, paxis in enumerate(pca.components_):
         print(f"~ PC{str(i+1)} ~")
         for j, comp in enumerate(paxis):
             print(f"{features[j]} : {comp}")
         print('\n')
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    print('\n')
 
 
 def mk_explained_variance_curve(df, features=DEF_FEATURES, field='scale_color'):
@@ -207,9 +212,10 @@ def mk_explained_variance_curve(df, features=DEF_FEATURES, field='scale_color'):
             x=range(1, exp_var_cumul.shape[0] + 1),
             y=exp_var_cumul,
             labels={"x": "# Components", "y": "Explained Variance"},
-            title=make_title(df)
+            title=make_title(df) + " PCA's  of N-dimensions"
         )
         fig.show()
+        print('\n')
     return
 
 
@@ -228,12 +234,12 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
     if type(df_n) != int:
         pca = PCA(n_components=2)
         components = pca.fit_transform(X)
-        print_axis_components(pca, features)
+        # Get the contributions of each feature in the PC1,PC2 plane
         loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
-
+        # Make The Figure
         fig = px.scatter(components, x=0, y=1, title='2-Component PCA : ' + make_title(df), labels={
                          '0': 'PC1', '1': 'PC2'}, color=df_n[field], color_discrete_map=c_map)
-
+        # Show the Feature Contribution to PC1 & PC2
         for i, feature in enumerate(features):
             fig.add_shape(
                 type='line',
@@ -250,9 +256,12 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
                 text=feature,
             )
         fig.show()
+        print_axis_components(pca, features)
+        print('\n')
     return
 
 
+# FEATURE NORMALIZATION AND DATA FORMATING ~ DROP EMPTY ROWS FOR CLEAN PROCESSING
 def resize_data(df, features, field):
     """ Given DataSet with a field to be determined from Features drop any rows which have missing feature inputs
 
@@ -263,16 +272,18 @@ def resize_data(df, features, field):
         Outputs:
             (tuple) - 'df_n', 'X' : The new resized data, the indicator variables columns from the resized data
     """
+    # seperate target and predictor variables
     r = features + [field]
     df_n = df[r]
+    # Drop any rows with empty data ===> YES THIS SKEWS OUR DATA A LOT TOWARDS PLANAR FEATURES
     df_n = df_n.dropna()
     X = df_n[features]
     M = X.to_numpy()
     n, _ = M.shape
-
     # Stoping condition if no PCA can be made
     if n <= 0:
         return 0, 0
+    # RETURN AN ARRAY OF THE DATA
     else:
         return df_n, X
 
@@ -301,7 +312,7 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
             ('Pandas.DataFrame' Object Class) - 'df': The DataFrame to plot our morphometric measurements
             (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
             (Int) - 'min_num_features' : The minimum number of Features the PCA axes can be constructed from
-            (components) - 'components': The number of components the PCA can have.
+            (components) - 'components': The number of components the PCA can have for which the features are optimized to. 
         Outputs:
             (List of Strings) - Best Feature Sub-Set given selection methedology
     """
@@ -310,6 +321,7 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
     # Change Up the conditions so our Data is still Meaningful
     feature_sets = [x for x in get_all_possible_combinations()
                     if len(x) >= min_num_features]
+    # Optimize:  find a local max in feature sets, value given all possible combinations
     # Get a way to store ~ (feature_list,pca_explained_vairance_ratio)
     rv = [None]*len(feature_sets)
     # Fill rv[i] with values of explained variance score of feature_sets[i]
@@ -328,21 +340,21 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
             entry = fset, 0.0
             rv[i] = entry
             continue
+    # Remove any entries that failed to write into our storage
     rv = [i for i in rv if i != None]
-    # get the key in the (k,v) pair tuples filling rv with lambda
+    # get the best feature set in  pair tuples filling rv with lambda function
     best_entry = max(rv, key=lambda i: i[1])
     best_features, _ = best_entry
-
     # Run appropriate visualizations
     if components == 2:
         # Show The Loaded PCA
         Load_Features(df, c_map, best_features, field)
-
     else:
         # Show a 3D model PCA
         PCA_3D(df, c_map, best_features, field)
 
-    print(best_features)
+    print(
+        f" The features selected to optimize for {components} components in the data provided is : {best_features}")
     # Show How Explained Variance Grows with added axes
     mk_explained_variance_curve(df, best_features, field)
 
@@ -352,8 +364,6 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
 def full_data_analysis(data, c_map, optimize_to_n_features=3):
     """
     """
-    # Phylo
-    phy_tree.Tree(data)
     # 3D PCA
     PCA_3D(data, c_map)
     # 2D PCA
@@ -371,7 +381,6 @@ def family_analysis(wt_data, c_map, num_features=3):
     # Segment Data By Family and Apply Desired Functions
     fams = segment_df_by_field(wt_data, 'f')
     for fam in fams:
-        phy_tree.Tree(fam)
         Load_Features(fam, c_map)
         top_features = optimize_feature_set(fam, c_map, num_features)
         show_originaldim(fam, c_map, top_features)
@@ -379,26 +388,26 @@ def family_analysis(wt_data, c_map, num_features=3):
     return
 
 
-def wt_analysis(data):
+def wt_analysis(data, n_features):
     """
     """
     print('*** WT ANALYSIS ***')
     cmap = color.fill_cmap(data, on_index=False)
-    print('\n')
-    print(f"Color Mapping Used : {cmap}")
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(f'COLOR MAPPING : {cmap}')
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print('\n')
     print('*** RAW DATA ANALYSIS ***')
-    full_data_analysis(data, cmap)
+    full_data_analysis(data, cmap, optimize_to_n_features=n_features)
     print('\n')
     print('*** FAMILY ANALYSIS ***')
-    family_analysis(data, cmap)
+    family_analysis(data, cmap, num_features=n_features)
     return
 
 
 def mutant_analysis(mutant_data, c_map):
     """
     """
-    # Phylo
     # Print Features
     # Violin Plot
     # Facet Grid
