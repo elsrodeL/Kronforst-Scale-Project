@@ -6,7 +6,7 @@ Functions to Visualize the Data
                   -- ALL RIGHTS RESERVED
 
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
-        (10/16/2021)
+        (10/17/2021)
 
 """
 import itertools
@@ -66,25 +66,21 @@ def make_title(df):
     return 'Raw Data'
 
 
-def feature_distribution(df, feature='scale_color', segby='f'):
+def feature_distribution(df, feature='scale_color'):
     """Shows Distributions of Measurements at the 'segby' level grouped by 'feature'
 
         Inputs:
             ('Pandas.DataFrame' Object Class) - 'df' : DataFrame to plot our Morphometric measurements
             (string) - 'feature' : What The Classes should be split up by
-            (string) - 'segby': By What Class attribute in the Column of the dataset should the data be split up by
-
         Outputs:
             (None) - Plots Violin Plots of Features
     """
-    dfs = segment_df_by_field(df, segby)
     measurements = DEF_FEATURES
-    for df_ in dfs:
-        for m in measurements:
-            g = sns.violinplot(x=feature, y=m, data=df_, width=0.7)
-            t = m + ' ' + 'distribution ' + 'for' + ' ' + make_title(df_)
-            g.set(title=t)
-            plt.show()
+    for m in measurements:
+        g = sns.violinplot(x=feature, y=m, data=df, width=0.7)
+        t = m + ' ' + 'distribution ' + 'for' + ' ' + make_title(df)
+        g.set(title=t)
+        plt.show()
     print('\n')
     return
 
@@ -305,7 +301,7 @@ def get_all_possible_combinations(features=DEF_FEATURES):
 
 
 # GET THE BEST POSSIBLE FEATURE SET AND DISPLAY IT
-def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', components=2):
+def optimize_feature_set(df, c_map, num_features=2, field='scale_color', components=2):
     """ Return The best Set of  Features given the input feature sets and the desired data
 
         Inputs:
@@ -320,7 +316,7 @@ def optimize_feature_set(df, c_map, min_num_features=2, field='scale_color', com
         [2, 3]), 'Reductions above 3 dimensions and below 2 dimensions are not possible '
     # Change Up the conditions so our Data is still Meaningful
     feature_sets = [x for x in get_all_possible_combinations()
-                    if len(x) >= min_num_features]
+                    if len(x) == num_features]
     # Optimize:  find a local max in feature sets, value given all possible combinations
     # Get a way to store ~ (feature_list,pca_explained_vairance_ratio)
     rv = [None]*len(feature_sets)
@@ -376,11 +372,10 @@ def full_data_analysis(data, c_map, optimize_to_n_features=3):
 def family_analysis(wt_data, c_map, num_features=3):
     """
     """
-    # Violin Plot
-    feature_distribution(wt_data)
     # Segment Data By Family and Apply Desired Functions
     fams = segment_df_by_field(wt_data, 'f')
     for fam in fams:
+        feature_distribution(fam)
         Load_Features(fam, c_map)
         top_features = optimize_feature_set(fam, c_map, num_features)
         show_originaldim(fam, c_map, top_features)
@@ -398,19 +393,27 @@ def wt_analysis(data, n_features):
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print('\n')
     print('*** RAW DATA ANALYSIS ***')
-    full_data_analysis(data, cmap, optimize_to_n_features=n_features)
+    full_data_analysis(data, cmap, n_features)
     print('\n')
     print('*** FAMILY ANALYSIS ***')
     family_analysis(data, cmap, num_features=n_features)
     return
 
 
-def mutant_analysis(mutant_data, c_map):
+def mutant_scale_analysis(mutant_data, n_features):
     """
     """
+    c_map = color.fill_cmap(mutant_data, on_index=False)
     # Print Features
+    color.print_mutant_df(mutant_data)
     # Violin Plot
+    feature_distribution(mutant_data)
     # Facet Grid
+    show_originaldim(mutant_data, c_map)
+    # 3D PCA
+    PCA_3D(mutant_data, c_map)
     # 2D PCA
+    Load_Features(mutant_data, c_map)
     # Optimization
+    optimize_feature_set(mutant_data, c_map)
     return
