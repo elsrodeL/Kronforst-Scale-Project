@@ -1,9 +1,9 @@
-"""phy_tree.py
+"""  phy_tree.py
 
 Class to Visualize the Phylogenetic Relationships/Connections in the Data 
 
-    SCALE PROJECT -- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
-                  -- ALL RIGHTS RESERVED 
+    SCALE PROJECT -x- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
+                  -x- ALL RIGHTS RESERVED 
         
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
         (10/16/2021)
@@ -14,13 +14,14 @@ Class to Visualize the Phylogenetic Relationships/Connections in the Data
 import networkx as nx
 import matplotlib.pyplot as plt
 
+# I am using a networkx.Graph Type object to represent my Phylogentic Tree
+DEFAULT_GRAPH = nx.Graph()
+
 # Have some way of vizually differenting diffrent parts of the tree
 DEFAULT_T_NODE_COLOR = 'black'
 DEFAULT_FAM_COLOR = 'red'
 DEFAULT_SPECIES_COLOR = 'green'
 DEFAULT_CONN_COLOR = 'blue'
-
-DEFAULT_GRAPH = nx.Graph()
 
 
 class Trunk:
@@ -259,7 +260,7 @@ class Tree:
             # get the keys of the value in the adjacency dictionary
             to_connect = list(d_adj[node].keys())
             assert len(
-                to_connect) == 2, 'Reducible Node by definition only has two edges'
+                to_connect) == 2, f"Reducible Node by definition has only two edges, yours has: {len(to_connect)}"
             # Remove the node
             self.remove_nodes([node])
             # Connect the two nodes that need to be
