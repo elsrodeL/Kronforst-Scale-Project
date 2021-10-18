@@ -8,13 +8,14 @@ Applies a variety of color classification and identification methods to our data
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
         (09/01/2021)
 
-File uncompleted...- (10/14/2021)
+File Completed ? - (10/17/2021)
 
 """
 
 
 import webcolors
 import math
+import pandas as pd
 
 # The Default Colors that we expect in our DataSet
 DEFAULT_COLORS = [
@@ -446,6 +447,76 @@ def gen_custom_closest(df_samples, df_data, colors=DEFAULT_COLORS, mutants=False
     return info, data
 
 
-# TO-DO; Need to write this up.
-def gen_mutants(df_samples, df_data, colors=DEFAULT_COLORS):
-    return None
+def gen_mutants(wt_data, mutant_data):
+    """ Returns DataFrames of species which have a mutant variant in our Study
+
+        Inputs:
+            ()
+            ()
+        Outputs:
+            ()
+    """
+    mutant_list = []
+    # find the corresponding species contained within mutant data
+    for m_sp in mutant_data['species'].unique():
+        # Get the mutant and wt variant of all scale data we have for this species
+        df_sp_mutant = mutant_data.loc[mutant_data['species'] == m_sp]
+        df_sp_wt = wt_data.loc[wt_data['species'] == m_sp]
+        # for this species how many mutant variants do we have
+        mutant_keys = df_sp_mutant['index'].unique()
+        for mkey in mutant_keys:
+            _, mutated_gene, color_shift = mkey.split(' ')
+            # Find the mutation we are looking for
+            df_geno_mutant = df_sp_mutant.loc[df_sp_mutant['genotype']
+                                              == mutated_gene]
+            # cross-ref colors
+            color_pre, color_post = color_shift.split('->')
+            # Get the mutated scales
+            df_mutant_scales = df_geno_mutant.loc[df_geno_mutant['scale_color_post'] == color_post]
+            # Get the original scales
+            wt_indexes, wt_colors = [i for i in df_sp_wt['index'].unique()], [
+                i for i in df_sp_wt['scale_color'].unique()]
+            wt_index_colors = [i.split(' ')[-1] for i in wt_indexes]
+
+            # Find the wt scale matching color_pre with values in wt_indexes and wt_colors
+            if color_pre in wt_colors:
+                df_wt_scales = df_sp_wt.loc[df_sp_wt['scale_color']
+                                            == color_pre]
+
+            elif color_pre in wt_index_colors:
+                correct_index = wt_indexes[wt_index_colors.index(color_pre)]
+                # match the indexes
+                df_wt_scales = df_sp_wt.loc[df_sp_wt['index'] == correct_index]
+            else:
+                print('NOT WORKING: ', mkey)
+                print('Could not match the color : ', color_pre,
+                      ' in : ', wt_index_colors + wt_colors)
+                df_wt_scales = None
+
+            if type(df_wt_scales) != type(None):
+                # Concat Data
+                df_mutation = pd.concat([df_wt_scales, df_mutant_scales])
+                mutant_list.append(df_mutation)
+    # Make sure that their color field description is valid
+    for df_mutation in mutant_list:
+        df_mutation.loc[df_mutation["scale_color"].isnull(
+        ), 'scale_color'] = df_mutation["scale_color_post"]
+
+    return mutant_list
+
+
+def print_mutant_df(df):
+    """ Examines what the concated dataframe represents as far as a mutation is concerned
+
+        Inputs:
+            ()
+        Outputs:
+            (None)
+    """
+    species = df['species'].unique()[0]
+    gene = [i for i in df['genotype'].unique() if i != 'wt'][0]
+    color_pre_mutation = df.loc[df['genotype'] == 'wt']['scale_color'].unique()[
+        0]
+    color_post_mutation = df.loc[df['genotype'] != 'wt']['scale_color'].unique()[
+        0]
+    print(f'{species} has a {gene} mutation causing a color change from {color_pre_mutation} to {color_post_mutation}')
