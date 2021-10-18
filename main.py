@@ -11,6 +11,8 @@ import viz_data
 from scale_data import WT_DATA, SAMPLES_DATA, MUTANT_DATA
 from copy import deepcopy
 
+# THIS NEEDS TO BE BROKEN UP
+
 
 def main(dataset='closest', analysis='family', colors=None, N=3):
     """ ~ Main Function For our Program ~
@@ -52,22 +54,29 @@ def main(dataset='closest', analysis='family', colors=None, N=3):
     else:
         # Assign Correct Mutant DataFrame
         if dataset == 'rgb':
-            samples, data = color.gen_rgb_data(
-                SAMPLES_DATA, MUTANT_DATA, mutants=True)
+            _, mutant_data = color.gen_rgb_data(
+                SAMPLES, MUTANTS, mutants=True)
+            _, wt_data = color.gen_rgb_data(SAMPLES_DATA, WT)
+
         if dataset == 'closest':
             if type(colors) != list:
-                samples, data = color.gen_custom_closest(
-                    SAMPLES_DATA, MUTANT_DATA, mutants=True)
+                _, mutant_data = color.gen_custom_closest(
+                    SAMPLES, MUTANTS, mutants=True)
+                _, wt_data = color.gen_custom_closest(SAMPLES_DATA, WT)
+
             else:
-                samples, data = color.gen_custom_closest(
-                    SAMPLES_DATA, WT_DATA, colors, mutants=True)
-        if dataset == 'raw':
-            samples, data = SAMPLES_DATA, WT_DATA
+                info1, mutant_data = color.gen_custom_closest(
+                    SAMPLES, MUTANTS, colors=colors, mutants=True)
+                info2, wt_data = color.gen_custom_closest(
+                    SAMPLES_DATA, WT, colors)
+
+        mutant_variants = color.gen_mutants(wt_data, mutant_data)
+        for mutant in mutant_variants:
+            viz_data.mutant_analysis(mutant)
 
 
 if __name__ == "__main__":
     # Intro Text to Our Program
     txt = pyfiglet.figlet_format('The Scale Project')
     print(txt)
-    main(dataset='validated')
-
+    main(dataset='closest', analysis='mutant')
