@@ -12,6 +12,8 @@ Created an Optimized PCA to select features influencing scale color across 8 dif
 
 ## Methods
 
+### Ultra Scale Characteristics taken from publications
+
 ### Color Classification 
 
 ### Phylogeny
@@ -29,6 +31,11 @@ Created an Optimized PCA to select features influencing scale color across 8 dif
 ### Installing
 
 ### Executing program
+you can run from src/
+'''
+ipython3 main.py 
+'''
+
 
 ## Help
 
