@@ -6,10 +6,7 @@ Applies a variety of color classification and identification methods to our data
                   -- ALL RIGHTS RESERVED
 
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
-        (09/01/2021)
-
-File Completed ? - (10/17/2021)
-
+        (10/21/2021)
 """
 
 
@@ -451,10 +448,10 @@ def gen_mutants(wt_data, mutant_data):
     """ Returns DataFrames of species which have a mutant variant in our Study
 
         Inputs:
-            ()
-            ()
+            ('Pandas.DataFrame' Object Class) - 'wt_data' : The Wilde Type Data for our study
+            ('Pandas.DataFrame' Object Class) - 'mutant_data' : The Mutant Data for our study
         Outputs:
-            ()
+            (List of 'Pandas.DataFrame' Object Classes) - 'mutants' : A list of dataframes segmented by the scale data pre and post mutation
     """
     mutant_list = []
     # find the corresponding species contained within mutant data
@@ -505,13 +502,13 @@ def gen_mutants(wt_data, mutant_data):
     return mutant_list
 
 
-def print_mutant_df(df):
+def examine_mutant_df(df):
     """ Examines what the concated dataframe represents as far as a mutation is concerned
 
         Inputs:
-            ()
+            ('Pandas.DataFrame' Object Class) - 'df' : A DataFrame generated from the'gen_mutants' functions
         Outputs:
-            (None)
+            (String) - The description of the species and mutation which leads to a change in scale_color
     """
     species = df['species'].unique()[0]
     gene = [i for i in df['genotype'].unique() if i != 'wt'][0]
@@ -519,4 +516,4 @@ def print_mutant_df(df):
         0]
     color_post_mutation = df.loc[df['genotype'] != 'wt']['scale_color'].unique()[
         0]
-    print(f'{species} has a {gene} mutation causing a color change from {color_pre_mutation} to {color_post_mutation}')
+    return f"{species} has a {gene} mutation causing a color change from {color_pre_mutation} to {color_post_mutation}"
