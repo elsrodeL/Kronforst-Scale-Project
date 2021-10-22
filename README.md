@@ -10,25 +10,29 @@ Created an Optimized PCA to select features influencing scale color across 8 dif
 
 ## Methods
 
-### Ultra Scale Characteristics taken from publications
+### Ultra-structure characteristics taken from publications
+
+### RGB values
 
 ### Color Classification 
 
-### Phylogeny
+### PCA for reducing the dimentionality of our data
 
-### PCA - Dimensional Reduction
+### Feature Selection by Optimizing a PCA for fewer components
 
-### Optimization
+## Analysis 
 
-### Dark vs. Light Scale Analysis
+### All Data
+
+### Dark vs. Light Scales
 
 ### Family Analysis
 
 ### Mutant Analysis
 
-### Installing
+## Installing
 
-### Executing program
+## Executing program
 
 ## License
 
