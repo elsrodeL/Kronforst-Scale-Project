@@ -1,4 +1,5 @@
-"""scale_data.py
+""" scale_data.py
+
 This File is where information from our 
 GoogleSheets Database is pre-processed for analysis
 
@@ -6,13 +7,11 @@ GoogleSheets Database is pre-processed for analysis
                   -- ALL RIGHTS RESERVED 
         
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
-        (09/01/2021)
-
-THIS FILE IS COMPLETE AS OF (09/23/2020)
+        (10/21/2021)
 """
-
 # We use Pandas.DataFrame Object Classes to hold our data
 import pandas as pd
+
 
 # The Numeric Ranges of Our Measurements in the GoogleSheets Spreadsheet
 DEFAULT_WT_RANGE = (8, 15)
@@ -23,7 +22,8 @@ DEFAULT_SAMPLES_RANGE = (12, 19)
 sheet_input_range = {
     'wt_table': DEFAULT_WT_RANGE,
     'mutant_table': DEFAULT_MUTANT_RANGE,
-    'samples_info': DEFAULT_SAMPLES_RANGE}
+    'samples_info': DEFAULT_SAMPLES_RANGE
+}
 
 
 # We write a function to get and write into a Pandas.DataFrame from a URL
@@ -45,29 +45,24 @@ def get_df(sheet_name='wt_table'):
             pass
         else:
             rv.append(c)
-    df_raw = df[rv]
+    df = df[rv]
 
-    # range of the measurement data
-    if sheet_name not in sheet_input_range.keys():
-        return df_raw
+    # get the numeric range of measurement entries
+    q1, q2 = sheet_input_range[sheet_name]
+    # define the columns which are numbers not strings
+    quant_vars = [i for i in df.columns[q1:q2]]
+    qual_vars = [i for i in df.columns if i not in quant_vars]
+    # Force strings into floats
+    for numeric_var in quant_vars:
+        df[numeric_var] = pd.to_numeric(
+            df[numeric_var], errors='coerce')
 
-    else:
-        # get the numeric range of measurement entries
-        q1, q2 = sheet_input_range[sheet_name]
-        # define the columns which are numbers not strings
-        quant_vars = [i for i in df_raw.columns[q1:q2]]
-        qual_vars = [i for i in df_raw.columns if i not in quant_vars]
-        # Force strings into floats
-        for numeric_var in quant_vars:
-            df_raw[numeric_var] = pd.to_numeric(
-                df_raw[numeric_var], errors='coerce')
+    for qual_var in qual_vars:
+        # Format some strings to be uniform
+        df[qual_var] = [str(i).lower().replace(" ", "")
+                        for i in df[qual_var].values]
 
-        for qual_var in qual_vars:
-            # Format some strings to be uniform
-            df_raw[qual_var] = [str(i).lower().replace(" ", "")
-                                for i in df_raw[qual_var].values]
-
-        return df_raw
+    return df
 
 
 # Something to split up the Phylogenetic portion of the data
