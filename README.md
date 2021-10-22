@@ -30,12 +30,6 @@ Created an Optimized PCA to select features influencing scale color across 8 dif
 
 ### Executing program
 
-## Help
-
-## Authors
- 
-## Version History
-
 ## License
 
 ## Acknowledgments
