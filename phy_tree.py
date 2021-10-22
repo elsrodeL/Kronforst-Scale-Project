@@ -2,11 +2,11 @@
 
 Class to Visualize the Phylogenetic Relationships/Connections in the Data 
 
-    SCALE PROJECT -x- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
-                  -x- ALL RIGHTS RESERVED 
+    SCALE PROJECT -- KRONFORST LABORATORY AT THE UNIVERSITY OF CHICAGO 
+                  -- ALL RIGHTS RESERVED 
         
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code 
-        (10/16/2021)
+        (10/21/2021)
 
 """
 
@@ -56,6 +56,10 @@ class Trunk:
 
     def mk_tree_trunk(self, G):
         """ Constructs Phylogentic Tree of our ButteryFly and Moths in terms of families.
+            Inputs:
+                (networkx.Graph Type Object Class) -  'G': A default blank Graph object
+            Outputs:
+                (networkx.Graph Type Object Class) - 'G' a filled out graph representation of all the families in our study
         """
         # mk the root and the diff connectors
         G.add_node('r')
@@ -246,6 +250,11 @@ class Tree:
 
     def remove_nodes(self, nodes):
         """ Removes the nodes listed from the Phylogentic Tree
+
+            Inputs:
+                (List of Strings) - 'nodes' : a list of the nodes in the Tree to be removed
+            Outputs:
+                (None)
         """
         for node in nodes:
             self.tree.remove_node(node)
@@ -254,6 +263,10 @@ class Tree:
     def reduce_nodes(self, nodes):
         """ Reduces the nodes listed from the Phylogentic Tree
                 i.e : Removes itself and connects the only other two adjacent nodes to each other 
+            Inputs:
+                (List of Strings) - 'nodes' : a list of the nodes in the Tree to be reduced
+            Outputs:
+                (None)
         """
         d_adj = self.tree.adj
         for node in nodes:
@@ -268,6 +281,8 @@ class Tree:
 
     def simplify_once(self):
         """ Simplify The given Graph 'G' to remove reducible nodes in the Graph. 
+            Reduces all reducable nodes in our tree and then prunes any remaining transitionary nodes that 
+            don't represent a LCA connecting other species in our data.
         """
         # Get nodes and how many connections they each have
         d_dict, nodes = self.tree.degree, list(self.tree.nodes)
@@ -281,7 +296,7 @@ class Tree:
             [i for i in leaves if i in self.t_nodes and i != 'r'])
 
     def simplify_totally(self):
-        """ Simplify the phylogenetic tree to the point it can't be simplified any further 
+        """ Simplify the phylogenetic tree to the point it can't be simplified any further.
         """
         tree, next_tree = 0, 1
         while tree != next_tree:
