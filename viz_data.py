@@ -6,7 +6,7 @@ Functions to Visualize the Data
                   -- ALL RIGHTS RESERVED
 
         Lukas Elsrode - Undergraduate Researcher at the Kronforst Laboratory wrote and tested this code
-        (10/17/2021)
+        (10/21/2021)
 
 """
 import itertools
@@ -25,12 +25,10 @@ DEF_FEATURES = [
     'lacuna_perimeter',
     'lacuna_circularity',
     'crossrib_thickness',
-    'ridge_to_ridge_distance'
+    'ridge_to_ridge_distance',
+    'trabernaculae_length',
+    'ridge_elevation'
 ]
-
-# TESTING CURIOUS -- looks like I might have to do a 2-D vs. 3-D option ?
-#  'trabernaculae_length',
-# 'ridge_elevation'
 
 
 def make_title(df):
@@ -256,8 +254,9 @@ def Load_Features(df, c_map, features=DEF_FEATURES, field='scale_color'):
         print('\n')
     return
 
-
 # FEATURE NORMALIZATION AND DATA FORMATING ~ DROP EMPTY ROWS FOR CLEAN PROCESSING
+
+
 def resize_data(df, features, field):
     """ Given DataSet with a field to be determined from Features drop any rows which have missing feature inputs
 
@@ -301,18 +300,18 @@ def get_all_possible_combinations(features=DEF_FEATURES):
 
 
 # GET THE BEST POSSIBLE FEATURE SET AND DISPLAY IT
-def optimize_feature_set(df, c_map, num_features=2, field='scale_color', components=2):
+def optimize_feature_set(df, c_map, num_features=2, field='scale_color', opt_to_n_components=2):
     """ Return The best Set of  Features given the input feature sets and the desired data
 
         Inputs:
             ('Pandas.DataFrame' Object Class) - 'df': The DataFrame to plot our morphometric measurements
             (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
-            (Int) - 'min_num_features' : The minimum number of Features the PCA axes can be constructed from
-            (components) - 'components': The number of components the PCA can have for which the features are optimized to. 
+            (Int) - 'num_features' : The fixed number of ultra-structure features the PCA axes can be constructed from
+            (Int) - 'opt_to_n_components': The number of components the PCA can have for which the features are optimized to.
         Outputs:
             (List of Strings) - Best Feature Sub-Set given selection methedology
     """
-    assert components in set(
+    assert opt_to_n_components in set(
         [2, 3]), 'Reductions above 3 dimensions and below 2 dimensions are not possible '
     # Change Up the conditions so our Data is still Meaningful
     feature_sets = [x for x in get_all_possible_combinations()
@@ -327,7 +326,7 @@ def optimize_feature_set(df, c_map, num_features=2, field='scale_color', compone
             data = deepcopy(df)
             df_n, X = resize_data(data, fset, field)
             if type(df_n) != int:
-                pca = PCA(n_components=components)
+                pca = PCA(n_components=opt_to_n_components)
                 pca.fit_transform(X)
                 score = round(sum(list(pca.explained_variance_ratio_))*100, 2)
                 entry = fset, score
@@ -342,7 +341,7 @@ def optimize_feature_set(df, c_map, num_features=2, field='scale_color', compone
     best_entry = max(rv, key=lambda i: i[1])
     best_features, _ = best_entry
     # Run appropriate visualizations
-    if components == 2:
+    if opt_to_n_components == 2:
         # Show The Loaded PCA
         Load_Features(df, c_map, best_features, field)
     else:
@@ -350,7 +349,7 @@ def optimize_feature_set(df, c_map, num_features=2, field='scale_color', compone
         PCA_3D(df, c_map, best_features, field)
 
     print(
-        f" The features selected to optimize for {components} components in the data provided is : {best_features}")
+        f" The {num_features} features selected to optimize for {opt_to_n_components} components in the data provided is : {best_features}")
     # Show How Explained Variance Grows with added axes
     mk_explained_variance_curve(df, best_features, field)
 
@@ -358,19 +357,36 @@ def optimize_feature_set(df, c_map, num_features=2, field='scale_color', compone
 
 
 def full_data_analysis(data, c_map, optimize_to_n_features=3):
-    """
+    """ Runs the full data analysis on the entire WT data. 
+
+        NOTE: CANNOT RUN THIS FUNCTION ON MUTANT DATA - due to issue in color.py with the color mapping and indexing
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df': The DataFrame to plot our morphometric measurements (WT ONLY)
+            (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
+            (Int) - 'optimize_to_n_features': The fixed number of ultra-structure features the PCA axes can be constructed from
+        Outputs:
+            (None)
     """
     # 3D PCA
     PCA_3D(data, c_map)
     # 2D PCA
     Load_Features(data, c_map)
     # Optimization
-    optimize_feature_set(data, c_map, min_num_features=optimize_to_n_features)
+    optimize_feature_set(data, c_map, num_features=optimize_to_n_features)
     return
 
 
 def family_analysis(wt_data, c_map, num_features=3):
-    """
+    """ Runs Family by Family analysis 
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df': The DataFrame to plot our morphometric measurements (WT ONLY)
+            (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
+            (Int) - 'num_features': The fixed number of ultra-structure features the PCA axes can be constructed from
+        Outputs:
+            (None)
+
     """
     # Segment Data By Family and Apply Desired Functions
     fams = segment_df_by_field(wt_data, 'f')
@@ -384,7 +400,13 @@ def family_analysis(wt_data, c_map, num_features=3):
 
 
 def wt_analysis(data, n_features):
-    """
+    """ Runs The Wilde Type Analysis part of our program
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'data': The DataFrame to plot our morphometric measurements (WT ONLY)
+            (Int) - 'n_features': The fixed number of ultra-structure features the PCA axes can be constructed from
+        Outputs:
+            (None)
     """
     print('*** WT ANALYSIS ***')
     cmap = color.fill_cmap(data, on_index=False)
@@ -400,20 +422,46 @@ def wt_analysis(data, n_features):
     return
 
 
-def mutant_scale_analysis(mutant_data, n_features):
+def mutant_analysis(wt_data, mutant_data, N):
+    """ Runs the Mutant analysis part of our program
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'wt_data': The DataFrame of morphometric measurements (WT ONLY)
+            ('Pandas.DataFrame' Object Class) - 'mutant_data': The DataFrame of morphometric measurements (MUTANT ONLY)
+            (Int) - 'N': The fixed number of ultra-structure features the PCA axes can be constructed from
+        Outputs:
+            (None)
     """
+    print('*** MUTANT ANALYSIS ***')
+    print('\n')
+    mutant_variants = color.gen_mutants(wt_data, mutant_data)
+    for mutant in mutant_variants:
+        c_map = color.fill_cmap(mutant, on_index=False)
+        analyze_mutant_transition_from_scale(mutant, N, c_map)
+        print('\n')
+
+
+def analyze_mutant_transition_from_scale(mutant_data, n_features, c_map):
+    """ Runs the analyis on a single mutant scale. Showing what ultra-structure 
+        features corespond with an exhibited scale color change in the mutant variants. 
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'wt_data': The DataFrame of morphometric measurements of the wilde and mutated scales of one variant 
+            (Int) - 'n_features': The fixed number of ultra-structure features the PCA axes can be constructed from
+            (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
+        Outputs:
+            (None)
     """
-    c_map = color.fill_cmap(mutant_data, on_index=False)
-    # Print Features
-    color.print_mutant_df(mutant_data)
+    # Print Mutation Type
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(f'SCALE MUTATION TYPE : ', color.examine_mutant_df(mutant_data))
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     # Violin Plot
     feature_distribution(mutant_data)
-    # Facet Grid
-    show_originaldim(mutant_data, c_map)
-    # 3D PCA
-    PCA_3D(mutant_data, c_map)
     # 2D PCA
     Load_Features(mutant_data, c_map)
     # Optimization
-    optimize_feature_set(mutant_data, c_map)
+    top_features = optimize_feature_set(
+        mutant_data, c_map, num_features=n_features)
+    show_originaldim(mutant_data, c_map, top_features)
     return
