@@ -17,7 +17,7 @@ Developed a python program to better understand the relationship between butterf
 
 ### Feature Selection by Optimizing a PCA for fewer components
 
-### Example : Mutations CRISPR-Cas9
+## Example : Mutations CRISPR-Cas9
 
 ## Installing
 
