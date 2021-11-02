@@ -271,11 +271,55 @@ def optimize_feature_set(df, c_map, num_features=2, field='scale_color', opt_to_
 #### RBG Data
 #### Validate Data
 
+## Feature Selection with all Data 
 
 
 ## Color Analysis by family
+### Nymphalids
+#### phylogeny 
+#### PCA's
+1. Raw
+2. Closest 
+3. RBG 
+#### Violin Plots 
+1. Side by side : Raw vs Closest 
+#### Any interesting optimizations or Facet Grids
+
+### Papillioniae
+#### phylogeny 
+#### PCA's
+1. Raw
+2. Closest 
+3. RBG 
+#### Violin Plots 
+1. Side by side : Raw vs Closest 
+#### Any interesting optimizations or Facet Grids
+
+### Pieridae 
+#### phylogeny 
+#### PCA's
+1. Raw
+2. Closest 
+3. RBG 
+#### Violin Plots 
+1. Side by side : Raw vs Closest 
+#### Any interesting optimizations or Facet Grids
+
+### Lycaenidae 
+#### phylogeny 
+#### PCA's
+1. Raw
+2. Closest 
+3. RBG 
+#### Violin Plots 
+1. Side by side : Raw vs Closest 
+#### Any interesting optimizations or Facet Grids
 
 ## Mutations CRISPR-Cas9
+### bicyclusanynana has a mutant-yellow mutation causing a color change from white to yellow
+### bicyclusanynana has a mutant-yellow mutation causing a color change from black to brown
+### heliconiuscydno has a mutant-al1 mutation causing a color change from green to brown
+
 
 ## Executing program
 
