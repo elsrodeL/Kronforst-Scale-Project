@@ -10,7 +10,9 @@ Developed a python program to better understand the relationship between butterf
 I examined different families of Lepidoptera to find their most important ultra-structure characteristics.Reducing the dimension of the data for all our datasets of different color classifications. Finally, I examine how these features correspond to a color change for a mutant variant of a butterfly in comparison to their wild relatives. 
 
 ## Methods
+
 ### Color Classification - Color Mapping
+
 I developed a way to apply a variety of color classification methods to these scales by using sampled RGB values to re-label the scale color variable. 
 I used a color picker from an image tool and well-known color algorithm to convert the RGB values into their closest definable color according the the CSS3 library. 
 These RBG values were used to generate four separate data sets with four unique 'color mappings'. 
@@ -138,8 +140,37 @@ The color is labeled to the closest definable color in the CSS3 library.
 
 #### Validate Data
 
+The data is re-labeled in the same fashion as the closest dataset with the exception 
+that only data who's original visible scale scale color matches the closest color is included in the 
+dataset. It is a way of dropping mis-labeled colors instead of converting the color-name given by the publication’s authors.
+
+Out of 75 individual sources of different scale types drawn form 17 publications only 24 were determined to be correctly classified according to our this method of color validation.
+giving us a color mapping of. 
+
+```
+{'black': 'rgb(0,0,0)',
+ 'white': 'rgb(255,255,255)',
+ 'orange': 'rgb(255,165,0)',
+ 'brown': 'rgb(165,42,42)',
+ 'beige': 'rgb(245,245,220)',
+ 'yellow': 'rgb(255,255,0)'}
+
+```
 
 ### PCA for reducing the dimensionality of our data
+
+The paradox when it comes to data is that more is always better, but it can be difficult to extract meaningful information from many variables. 
+Because our data is highly dimensional, meaning it has a lot of columns per row, we need a way to extract meaningful insights from our data. 
+We use a Principal Component Analysis for this. We take our original seven morphological ultra-scale characteristics and feed them into the method to understand which features are most helpful in resolving data. 
+We use a decomposed 2D PCA to easily represent this, however the program can also do 3D PCA’s. 
+
+#### Limitations: 
+
+1. A PCA requires dropping rows where input features are void. Because our data is sourced across many different publications many images were taken without a side-view so the morphological characteristics of 'traburnaculae_length' and 'ridge_elevation' could only be recorded for a small sub-set of the overall data.  Because of this I have conducted multiple PCA’s with different sets of features to choose from which make use of more of the data to construct the PCA. In the rest of this README, I will be referring to two different sets of PCA's one labeled  '2D features' which includes the ultra-structure measurements which only required a top-down image of the scales, which all publications had which was used to generate our data, the other refereed to as '3D features' is a PCA constructed from data generated from pictures that had a side-view image of scales.
+
+2. A PCA is a great way of uncovering ways of differentiating different catagories based on input features. However this categorization based on observable traits is the same process that early naturalist and geneticists adopted to classify the degree of 'relatedness' between species.  Therefore without accounting for the underlying phylogeny of our data or inherent differentiation across species regardless of scale color, we cannot definitively say that the morphological relationships we uncover are the definitive features that define the phenotypic expression of scale color. Instead it is entirely possible that the PCA's we are generating are showing the features which best resolve separate families or more closely related groups. Another way this can happen regardless of the data's underlying phylogeny is that certain colors only appear in certain families or genuses so the morphological distinction with respect to scale color cannot be inferred. 
+
+3. Labels not encoded 
 
 ### Feature Selection by Optimizing a PCA for fewer components
 
