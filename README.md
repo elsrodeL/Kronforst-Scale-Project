@@ -157,7 +157,7 @@ giving us a color mapping of.
 
 ```
 
-### PCA for reducing the dimensionality of our data
+### Reducing the Dimension of the Data - Principle Component Analysis (PCA)
 
 The paradox when it comes to data is that more is always better, but it can be difficult to extract meaningful information from many variables. 
 Because our data is highly dimensional, meaning it has a lot of columns per row, we need a way to extract meaningful insights from our data. 
@@ -168,11 +168,94 @@ We use a decomposed 2D PCA to easily represent this, however the program can als
 
 1. A PCA requires dropping rows where input features are void. Because our data is sourced across many different publications many images were taken without a side-view so the morphological characteristics of 'traburnaculae_length' and 'ridge_elevation' could only be recorded for a small sub-set of the overall data.  Because of this I have conducted multiple PCA’s with different sets of features to choose from which make use of more of the data to construct the PCA. In the rest of this README, I will be referring to two different sets of PCA's one labeled  '2D features' which includes the ultra-structure measurements which only required a top-down image of the scales, which all publications had which was used to generate our data, the other refereed to as '3D features' is a PCA constructed from data generated from pictures that had a side-view image of scales.
 
+
+```
+2D_features = [
+    'lacuna_area_window',
+    'lacuna_perimeter',
+    'lacuna_circularity',
+    'crossrib_thickness',
+    'ridge_to_ridge_distance'
+]
+
+3D_features = [
+    'lacuna_area_window',
+    'lacuna_perimeter',
+    'lacuna_circularity',
+    'crossrib_thickness',
+    'ridge_to_ridge_distance',
+    'trabernaculae_length',
+    'ridge_elevation'
+]
+```
+
+
 2. A PCA is a great way of uncovering ways of differentiating different catagories based on input features. However this categorization based on observable traits is the same process that early naturalist and geneticists adopted to classify the degree of 'relatedness' between species.  Therefore without accounting for the underlying phylogeny of our data or inherent differentiation across species regardless of scale color, we cannot definitively say that the morphological relationships we uncover are the definitive features that define the phenotypic expression of scale color. Instead it is entirely possible that the PCA's we are generating are showing the features which best resolve separate families or more closely related groups. Another way this can happen regardless of the data's underlying phylogeny is that certain colors only appear in certain families or genuses so the morphological distinction with respect to scale color cannot be inferred. 
 
-3. Labels not encoded 
+3. We only examined these 7  ultra-scale characteristics. Columns with quantitative data such as the presence of scutes and adornments was not included. 
 
-### Feature Selection by Optimizing a PCA for fewer components
+### Feature Selection using an Optimized PCA
+A PCA can help show us what variables best help explain the variance observed, however it will always return a set of axes constructed from all features, this can lead to over-fitting as the model is looking for the maximum potential variance explained by a set of axes and not necessarily looking at the most important sub-set of initial features. To resolve this issue, I use a function which takes a set of features and returns all possible sub-sets of those features,  from which I can choose to reduce the number of features so that the generated PCA set has the maximum explained variance from a set number of initial features.
+
+This function is shown below. 
+
+```
+def optimize_feature_set(df, c_map, num_features=2, field='scale_color', opt_to_n_components=2):
+    """ Return The best Set of  Features given the input feature sets and the desired data
+
+        Inputs:
+            ('Pandas.DataFrame' Object Class) - 'df': The DataFrame to plot our morphometric measurements
+            (Dictionary) - 'c_map': Dictionary Mapping Field values to the color descriptions for the Visulizations
+            (Int) - 'num_features' : The fixed number of ultra-structure features the PCA axes can be constructed from
+            (Int) - 'opt_to_n_components': The number of components the PCA can have for which the features are optimized to.
+        Outputs:
+            (List of Strings) - Best Feature Sub-Set given selection methedology
+    """
+    assert opt_to_n_components in set(
+        [2, 3]), 'Reductions above 3 dimensions and below 2 dimensions are not possible '
+    # Change Up the conditions so our Data is still Meaningful
+    feature_sets = [x for x in get_all_possible_combinations()
+                    if len(x) == num_features]
+    # Optimize:  find a local max in feature sets, value given all possible combinations
+    # Get a way to store ~ (feature_list,pca_explained_vairance_ratio)
+    rv = [None]*len(feature_sets)
+    # Fill rv[i] with values of explained variance score of feature_sets[i]
+    for i, fset in enumerate(feature_sets):
+        try:
+            # Here we generate the 'Samples Data', 'Wilde Type Data', and  'Mutant Data'
+            data = deepcopy(df)
+            df_n, X = resize_data(data, fset, field)
+            if type(df_n) != int:
+                pca = PCA(n_components=opt_to_n_components)
+                pca.fit_transform(X)
+                score = round(sum(list(pca.explained_variance_ratio_))*100, 2)
+                entry = fset, score
+                rv[i] = entry
+        except:
+            entry = fset, 0.0
+            rv[i] = entry
+            continue
+    # Remove any entries that failed to write into our storage
+    rv = [i for i in rv if i != None]
+    # get the best feature set in  pair tuples filling rv with lambda function
+    best_entry = max(rv, key=lambda i: i[1])
+    best_features, _ = best_entry
+    # Run appropriate visualizations
+    if opt_to_n_components == 2:
+        # Show The Loaded PCA
+        Load_Features(df, c_map, best_features, field)
+    else:
+        # Show a 3D model PCA
+        PCA_3D(df, c_map, best_features, field)
+
+    print(
+        f" The {num_features} features selected to optimize for {opt_to_n_components} components in the data provided is : {best_features}")
+    # Show How Explained Variance Grows with added axes
+    # mk_explained_variance_curve(df, best_features, field)
+
+    return best_features
+
+```
 
 ## PCA with All Data - Scale Color Classification 
 ### Using all features vs. 2D features 
